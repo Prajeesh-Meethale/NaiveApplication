@@ -148,6 +148,9 @@
 .engine-shell .tableFooter { padding: 12px 20px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 11px; color: var(--text3); display: flex; justify-content: space-between; gap: 16px; background: var(--bg2); background-image: none; }
 .engine-shell .backLink { font-family: var(--mono); font-size: 11px; color: var(--text3); text-decoration: none; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border2); transition: all .12s; white-space: nowrap; }
 .engine-shell .backLink:hover { color: var(--text); background: var(--bg3); }
+.engine-shell .agentStatus { font-family: var(--mono); font-size: 11px; padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border2); white-space: nowrap; letter-spacing: .04em; }
+.engine-shell .agentStatus.ready { color: var(--green); border-color: rgba(22,163,74,.3); background: var(--green-dim); }
+.engine-shell .agentStatus.offline { color: var(--text3); border-color: var(--border); background: transparent; }
 .engine-shell .toolBtn.insights { background: var(--amber-dim); border-color: var(--amber); color: var(--amber); }
 .engine-shell .toolBtn.insights:hover { background: rgba(180,83,9,.14); }
 .engine-shell .insightsPanel { width: min(800px, 100%); max-height: min(82vh, 860px); }

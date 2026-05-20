@@ -663,17 +663,7 @@ export default function Home() {
             <div className="subtitle">discover what to publish · score fit · generate briefs{visible.length > 0 ? ` · ${visible.length} queries loaded` : ""}</div>
           </div>
           <div className="topbarRight">
-            <label className="apiKeyWrap" title={!keyReady ? "No key? just let me know." : undefined}>
-              <input
-                type="password"
-                value={openRouterKey}
-                onChange={(event) => setOpenRouterKey(event.target.value)}
-                placeholder="OpenRouter key"
-                autoComplete="off"
-                spellCheck={false}
-              />
-              <span className={`keyStatus ${keyReady ? "ready" : ""}`}>{keyReady ? "✓ key ready" : "sk-or-..."}</span>
-            </label>
+            <span className={`agentStatus ${keyReady ? "ready" : "offline"}`}>{keyReady ? "⬤ agent ready" : "⬤ offline"}</span>
             <label className="searchWrap"><Search size={14} className="searchIcon" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="filter queries..." /></label>
             <select value={sort} onChange={(event) => setSort(event.target.value)}>
               <option value="opportunity">Sort: Opportunity</option><option value="volume">Sort: Volume</option><option value="competition">Sort: Competition</option><option value="alpha">Sort: A–Z</option>
