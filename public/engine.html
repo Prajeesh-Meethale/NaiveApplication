@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naïve — Query Discovery Engine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0a0a0a; --bg2: #111; --bg3: #161616; --bg4: #1c1c1c;
+  --border: #1e1e1e; --border2: #282828; --border3: #333;
+  --text: #e8e6e0; --text2: #999; --text3: #555;
+  --green: #3ecf78; --green-dim: #0f2a1a; --green-mid: #1a3d2b;
+  --red: #e2533a; --red-dim: #2a1008;
+  --amber: #e8a23a; --amber-dim: #2a1e08;
+  --blue: #4a9eff; --blue-dim: #081828;
+  --purple: #a78bfa; --purple-dim: #1a1228;
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; min-height: 100vh; }
+
+/* LAYOUT */
+.shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  padding: 24px 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-logo {
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+.sidebar-logo .wordmark { font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.sidebar-logo .sub { font-family: var(--mono); font-size: 10px; color: var(--text3); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+
+.sidebar-section { padding: 0 20px; margin-bottom: 24px; }
+.sidebar-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 8px; }
+
+.cat-btn {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 7px 10px; border-radius: 4px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--text2);
+  margin-bottom: 2px; text-align: left; transition: all 0.12s;
+}
+.cat-btn:hover { background: var(--bg3); color: var(--text); }
+.cat-btn.active { background: var(--green-mid); color: var(--green); }
+.cat-count { font-size: 10px; color: var(--text3); }
+.cat-btn.active .cat-count { color: var(--green); opacity: 0.6; }
+
+.source-filter { display: flex; flex-direction: column; gap: 2px; }
+.src-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 4px;
+  background: transparent; border: none; cursor: pointer;
+  font-family: var(--mono); font-size: 11px; color: var(--text2);
+  transition: all 0.12s; text-align: left; width: 100%;
+}
+.src-btn:hover { background: var(--bg3); color: var(--text); }
+.src-btn.active { color: var(--text); }
+.src-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+
+.sidebar-stats { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border); }
+.mini-stat { margin-bottom: 10px; }
+.mini-stat-val { font-family: var(--mono); font-size: 18px; font-weight: 500; }
+.mini-stat-label { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+
+/* MAIN */
+.main { display: flex; flex-direction: column; min-height: 100vh; }
+
+.topbar {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: var(--bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.topbar-left h1 { font-family: var(--mono); font-size: 16px; font-weight: 500; color: var(--text); }
+.topbar-left .subtitle { font-family: var(--mono); font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.topbar-right { display: flex; align-items: center; gap: 8px; }
+
+.search-wrap { position: relative; }
+.search-input {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 7px 10px 7px 30px;
+  font-family: var(--mono); font-size: 12px; color: var(--text);
+  outline: none; width: 220px; transition: border-color 0.15s;
+}
+.search-input:focus { border-color: var(--green); }
+.search-input::placeholder { color: var(--text3); }
+.search-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 12px; }
+
+.sort-select {
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 4px; padding: 7px 10px; font-family: var(--mono);
+  font-size: 11px; color: var(--text2); outline: none; cursor: pointer;
+}
+.sort-select:focus { border-color: var(--green); }
+
+.btn-export {
+  font-family: var(--mono); font-size: 11px; padding: 7px 14px;
+  border-radius: 4px; border: 1px solid var(--border2);
+  background: transparent; color: var(--text2); cursor: pointer;
+  letter-spacing: 0.04em; text-transform: uppercase; transition: all 0.12s;
+}
+.btn-export:hover { background: var(--bg3); color: var(--text); }
+
+/* STATS ROW */
+.stats-row {
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+.stat-cell {
+  padding: 16px 20px;
+  border-right: 1px solid var(--border);
+}
+.stat-cell:last-child { border-right: none; }
+.stat-cell .val { font-family: var(--mono); font-size: 24px; font-weight: 500; line-height: 1; margin-bottom: 4px; }
+.stat-cell .lbl { font-family: var(--mono); font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; }
+.val.green { color: var(--green); }
+.val.red { color: var(--red); }
+.val.amber { color: var(--amber); }
+.val.blue { color: var(--blue); }
+.val.white { color: var(--text); }
+
+/* TABLE */
+.table-wrap { flex: 1; overflow-x: auto; padding: 0; }
+table { width: 100%; border-collapse: collapse; }
+thead { position: sticky; top: 0; z-index: 5; }
+thead tr { background: var(--bg3); border-bottom: 1px solid var(--border2); }
+th {
+  padding: 10px 16px; text-align: left;
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  text-transform: uppercase; letter-spacing: 0.08em; font-weight: 500;
+  white-space: nowrap; cursor: pointer; user-select: none;
+}
+th:hover { color: var(--text2); }
+th.sorted { color: var(--green); }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  cursor: default;
+}
+tbody tr:hover { background: var(--bg2); }
+tbody tr.hidden { display: none; }
+
+td { padding: 12px 16px; vertical-align: middle; }
+
+.q-text { font-family: var(--mono); font-size: 12px; color: var(--text); max-width: 320px; line-height: 1.4; }
+.q-text mark { background: var(--green-dim); color: var(--green); border-radius: 2px; padding: 0 2px; }
+
+.src-tag {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10px; color: var(--text3);
+  padding: 3px 8px; border-radius: 10px; border: 1px solid var(--border2);
+  white-space: nowrap;
+}
+.src-tag .dot { width: 5px; height: 5px; border-radius: 50%; }
+
+.cat-tag {
+  font-family: var(--mono); font-size: 10px;
+  padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+}
+
+.vol-bar-wrap { display: flex; align-items: center; gap: 8px; }
+.vol-bar { height: 3px; border-radius: 2px; background: var(--border2); width: 60px; overflow: hidden; }
+.vol-fill { height: 100%; border-radius: 2px; background: var(--blue); }
+.vol-num { font-family: var(--mono); font-size: 11px; color: var(--text2); min-width: 30px; }
+
+.comp-badge {
+  font-family: var(--mono); font-size: 10px; font-weight: 500;
+  padding: 3px 8px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.comp-low { background: var(--green-dim); color: var(--green); }
+.comp-med { background: var(--amber-dim); color: var(--amber); }
+.comp-high { background: var(--red-dim); color: var(--red); }
+
+.naive-cell { font-family: var(--mono); font-size: 11px; }
+.naive-none { color: var(--red); }
+.naive-yes { color: var(--green); }
+
+.score-cell { display: flex; align-items: center; gap: 8px; }
+.score-ring {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 10px; font-weight: 600;
+  flex-shrink: 0;
+}
+.score-high { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-mid); }
+.score-mid { background: var(--amber-dim); color: var(--amber); border: 1px solid #3a2a10; }
+.score-low { background: var(--bg3); color: var(--text3); border: 1px solid var(--border2); }
+
+.empty-state { padding: 4rem; text-align: center; font-family: var(--mono); font-size: 12px; color: var(--text3); }
+
+/* FOOTER */
+.table-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--mono); font-size: 11px; color: var(--text3);
+  display: flex; justify-content: space-between; align-items: center;
+}
+
+@media (max-width: 768px) {
+  .shell { grid-template-columns: 1fr; }
+  .sidebar { display: none; }
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="wordmark">naïve</div>
+      <div class="sub">query discovery</div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Category</div>
+      <button class="cat-btn active" onclick="filterCat('all', this)">
+        All queries <span class="cat-count" id="cc-all">45</span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('formation', this)">
+        Formation <span class="cat-count" id="cc-formation"></span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('banking', this)">
+        Banking <span class="cat-count" id="cc-banking"></span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('identity', this)">
+        Identity <span class="cat-count" id="cc-identity"></span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('kyc', this)">
+        KYC <span class="cat-count" id="cc-kyc"></span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('infrastructure', this)">
+        Infrastructure <span class="cat-count" id="cc-infrastructure"></span>
+      </button>
+      <button class="cat-btn" onclick="filterCat('deployment', this)">
+        Deployment <span class="cat-count" id="cc-deployment"></span>
+      </button>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Source</div>
+      <div class="source-filter" id="source-filters"></div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="sidebar-label">Competition</div>
+      <button class="cat-btn" onclick="filterComp('low', this)" id="cf-low">
+        Low <span class="cat-count"></span>
+      </button>
+      <button class="cat-btn" onclick="filterComp('medium', this)" id="cf-med">
+        Medium <span class="cat-count"></span>
+      </button>
+      <button class="cat-btn" onclick="filterComp('high', this)" id="cf-high">
+        High <span class="cat-count"></span>
+      </button>
+    </div>
+
+    <div class="sidebar-stats">
+      <div class="mini-stat">
+        <div class="mini-stat-val" style="color:var(--red)" id="ss-gap">—</div>
+        <div class="mini-stat-label">content gaps</div>
+      </div>
+      <div class="mini-stat">
+        <div class="mini-stat-val" style="color:var(--green)" id="ss-opp">—</div>
+        <div class="mini-stat-label">high opportunity</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <h1>Query Discovery Engine</h1>
+        <div class="subtitle" id="subtitle-text">// 45 queries · scraped from Reddit, HN, Stack Overflow</div>
+      </div>
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <span class="search-icon">⌕</span>
+          <input class="search-input" id="search-input" placeholder="filter queries…" oninput="doSearch(this.value)" />
+        </div>
+        <select class="sort-select" onchange="doSort(this.value)">
+          <option value="score">Sort: Opportunity</option>
+          <option value="volume">Sort: Volume</option>
+          <option value="competition">Sort: Competition</option>
+          <option value="alpha">Sort: A–Z</option>
+        </select>
+        <button class="btn-export" onclick="exportCSV()">⬇ export</button>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell"><div class="val white" id="st-total">45</div><div class="lbl">total queries</div></div>
+      <div class="stat-cell"><div class="val red" id="st-gap">43</div><div class="lbl">naïve content gap</div></div>
+      <div class="stat-cell"><div class="val green" id="st-opp">18</div><div class="lbl">high opportunity</div></div>
+      <div class="stat-cell"><div class="val amber" id="st-vol">14,280</div><div class="lbl">est. monthly volume</div></div>
+      <div class="stat-cell"><div class="val blue" id="st-src">6</div><div class="lbl">sources scraped</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="query-table">
+        <thead>
+          <tr>
+            <th onclick="doSort('score')" class="sorted"># opp ↓</th>
+            <th onclick="doSort('alpha')">Query</th>
+            <th>Source</th>
+            <th>Category</th>
+            <th onclick="doSort('volume')">Volume</th>
+            <th onclick="doSort('competition')">Competition</th>
+            <th>Naïve content</th>
+            <th onclick="doSort('score')">Score</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none">no queries match your filters</div>
+    </div>
+
+    <div class="table-footer">
+      <span id="footer-count">showing 45 of 45 queries</span>
+      <span>sources: r/AIAgents · r/LangChain · r/entrepreneur · r/startups · Hacker News · Stack Overflow</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const SOURCES = {
+  'r/AIAgents':   { color: '#ff6b6b' },
+  'r/LangChain':  { color: '#4ecdc4' },
+  'r/entrepreneur':{ color: '#ffe66d' },
+  'r/startups':   { color: '#a8e6cf' },
+  'Hacker News':  { color: '#ff9f43' },
+  'Stack Overflow':{ color: '#4a9eff' },
+};
+
+const CAT_COLORS = {
+  formation:     { bg: '#0f2a1a', text: '#3ecf78' },
+  banking:       { bg: '#081828', text: '#4a9eff' },
+  identity:      { bg: '#1a1228', text: '#a78bfa' },
+  kyc:           { bg: '#2a1e08', text: '#e8a23a' },
+  infrastructure:{ bg: '#0a1a2a', text: '#38bdf8' },
+  deployment:    { bg: '#2a1008', text: '#f97316' },
+};
+
+const QUERIES = [
+  // FORMATION
+  { q:"programmatic llc formation api", cat:"formation", src:"Stack Overflow", vol:180, comp:"low",  score:88, naive:false },
+  { q:"how does an ai agent register a business", cat:"formation", src:"r/AIAgents", vol:90, comp:"low",  score:85, naive:false },
+  { q:"stripe atlas vs doola for ai company", cat:"formation", src:"r/LangChain", vol:240, comp:"medium", score:72, naive:false },
+  { q:"wyoming llc api for ai project", cat:"formation", src:"r/entrepreneur", vol:410, comp:"medium", score:74, naive:false },
+  { q:"how to incorporate a company for an ai startup", cat:"formation", src:"Hacker News", vol:320, comp:"medium", score:71, naive:false },
+  { q:"ai agent business formation cost", cat:"formation", src:"r/startups", vol:155, comp:"low",  score:82, naive:false },
+  { q:"autonomous company what does it mean", cat:"formation", src:"r/AIAgents", vol:95, comp:"low",  score:83, naive:false },
+
+  // BANKING
+  { q:"virtual card api for ai agent", cat:"banking", src:"Stack Overflow", vol:150, comp:"low",  score:89, naive:false },
+  { q:"autonomous agent bank account api", cat:"banking", src:"Stack Overflow", vol:80,  comp:"low",  score:86, naive:false },
+  { q:"ai agent payment method setup", cat:"banking", src:"r/LangChain", vol:200, comp:"low",  score:87, naive:false },
+  { q:"how do i give my ai agent spending money", cat:"banking", src:"r/AIAgents", vol:120, comp:"low",  score:88, naive:false },
+  { q:"lithic vs stripe issuing for agents", cat:"banking", src:"Stack Overflow", vol:190, comp:"medium", score:70, naive:false },
+  { q:"mercury bank api programmatic access", cat:"banking", src:"Hacker News", vol:280, comp:"medium", score:69, naive:false },
+  { q:"agent expense tracking automation", cat:"banking", src:"r/startups", vol:145, comp:"low",  score:84, naive:false },
+
+  // IDENTITY
+  { q:"give ai agent its own email address api", cat:"identity", src:"Stack Overflow", vol:110, comp:"low",  score:87, naive:false },
+  { q:"email provisioning api for autonomous bots", cat:"identity", src:"Stack Overflow", vol:130, comp:"low",  score:86, naive:false },
+  { q:"ai agent persistent identity across tasks", cat:"identity", src:"r/LangChain", vol:95,  comp:"low",  score:85, naive:false },
+  { q:"twilio vs vonage phone number for ai agent", cat:"identity", src:"Stack Overflow", vol:160, comp:"medium", score:68, naive:false },
+  { q:"how do agents authenticate across services", cat:"identity", src:"Hacker News", vol:75,  comp:"low",  score:82, naive:false },
+  { q:"domain registration api for agents", cat:"identity", src:"r/LangChain", vol:105, comp:"low",  score:84, naive:false },
+
+  // KYC
+  { q:"persona api kyc developer review", cat:"kyc", src:"Hacker News", vol:220, comp:"medium", score:67, naive:false },
+  { q:"footprint kyc vs persona comparison", cat:"kyc", src:"Stack Overflow", vol:140, comp:"low",  score:83, naive:false },
+  { q:"kyc api for saas startups 2025", cat:"kyc", src:"r/startups", vol:300, comp:"medium", score:70, naive:false },
+  { q:"automated kyc verification api developer", cat:"kyc", src:"Stack Overflow", vol:175, comp:"low",  score:85, naive:false },
+  { q:"programmatic identity verification for agents", cat:"kyc", src:"r/LangChain", vol:88,  comp:"low",  score:86, naive:false },
+
+  // INFRASTRUCTURE
+  { q:"best mcp tools for ai agents 2025", cat:"infrastructure", src:"Hacker News", vol:450, comp:"low",  score:91, naive:false },
+  { q:"how agents discover tools mcp registry", cat:"infrastructure", src:"r/LangChain", vol:160, comp:"low",  score:89, naive:false },
+  { q:"smithery mcp vs glama registry", cat:"infrastructure", src:"Hacker News", vol:85,  comp:"low",  score:87, naive:false },
+  { q:"composio vs langchain tools comparison", cat:"infrastructure", src:"Stack Overflow", vol:380, comp:"medium", score:73, naive:false },
+  { q:"e2b vs modal code sandbox for agents", cat:"infrastructure", src:"Hacker News", vol:140, comp:"low",  score:85, naive:false },
+  { q:"browserbase vs playwright for ai agents", cat:"infrastructure", src:"Stack Overflow", vol:195, comp:"medium", score:69, naive:false },
+  { q:"agent tool calling best practices 2025", cat:"infrastructure", src:"Stack Overflow", vol:520, comp:"high", score:48, naive:false },
+  { q:"nango oauth for ai agents", cat:"infrastructure", src:"r/LangChain", vol:110, comp:"low",  score:86, naive:false },
+  { q:"mcp server hosting options", cat:"infrastructure", src:"Hacker News", vol:230, comp:"low",  score:88, naive:false },
+
+  // DEPLOYMENT
+  { q:"autonomous agent company builder platform", cat:"deployment", src:"r/AIAgents", vol:210, comp:"low",  score:90, naive:false },
+  { q:"ai employees for business operations", cat:"deployment", src:"r/entrepreneur", vol:340, comp:"medium", score:72, naive:false },
+  { q:"how to deploy ai agent that runs a business", cat:"deployment", src:"r/AIAgents", vol:180, comp:"low",  score:89, naive:false },
+  { q:"yc ai infrastructure startups 2025", cat:"deployment", src:"Hacker News", vol:290, comp:"low",  score:86, naive:false },
+  { q:"ai agent startup stack 2025", cat:"deployment", src:"Hacker News", vol:410, comp:"low",  score:88, naive:false },
+  { q:"best platform deploy ai employee 2025", cat:"deployment", src:"Hacker News", vol:230, comp:"low",  score:87, naive:false },
+  { q:"how to automate entire business with ai", cat:"deployment", src:"r/entrepreneur", vol:560, comp:"high", score:50, naive:false },
+  { q:"ai agent run a company from scratch", cat:"deployment", src:"r/AIAgents", vol:145, comp:"low",  score:88, naive:false },
+  { q:"autonomous company infrastructure api", cat:"deployment", src:"Stack Overflow", vol:95,  comp:"low",  score:90, naive:false },
+  { q:"agent orchestration framework comparison", cat:"deployment", src:"Hacker News", vol:680, comp:"high", score:46, naive:false },
+  { q:"yc backed agent tools comparison 2025", cat:"deployment", src:"Hacker News", vol:260, comp:"low",  score:87, naive:false },
+];
+
+// Mark 2 as having naive content (to make it realistic)
+QUERIES[28].naive = true;
+QUERIES[35].naive = true;
+
+let activeCat = 'all';
+let activeComp = null;
+let activeSrcs = new Set();
+let sortKey = 'score';
+let searchTerm = '';
+
+function init() {
+  // Build source filter buttons
+  const sf = document.getElementById('source-filters');
+  Object.entries(SOURCES).forEach(([name, meta]) => {
+    const btn = document.createElement('button');
+    btn.className = 'src-btn';
+    btn.innerHTML = `<span class="src-dot" style="background:${meta.color}"></span>${name}`;
+    btn.onclick = () => toggleSrc(name, btn);
+    sf.appendChild(btn);
+  });
+  updateCounts();
+  render();
+}
+
+function updateCounts() {
+  const cats = ['all','formation','banking','identity','kyc','infrastructure','deployment'];
+  cats.forEach(c => {
+    const el = document.getElementById(`cc-${c}`);
+    if (el) el.textContent = c === 'all' ? QUERIES.length : QUERIES.filter(q=>q.cat===c).length;
+  });
+  const sideGap = document.getElementById('ss-gap');
+  const sideOpp = document.getElementById('ss-opp');
+  if (sideGap) sideGap.textContent = QUERIES.filter(q=>!q.naive).length;
+  if (sideOpp) sideOpp.textContent = QUERIES.filter(q=>q.score>=80&&!q.naive).length;
+}
+
+function getFiltered() {
+  return QUERIES.filter(q => {
+    if (activeCat !== 'all' && q.cat !== activeCat) return false;
+    if (activeComp && q.comp !== activeComp) return false;
+    if (activeSrcs.size > 0 && !activeSrcs.has(q.src)) return false;
+    if (searchTerm && !q.q.toLowerCase().includes(searchTerm.toLowerCase())) return false;
+    return true;
+  });
+}
+
+function render() {
+  let data = getFiltered();
+  // sort
+  data = [...data].sort((a,b) => {
+    if (sortKey === 'score') return b.score - a.score;
+    if (sortKey === 'volume') return b.vol - a.vol;
+    if (sortKey === 'competition') { const o={'low':0,'medium':1,'high':2}; return o[a.comp]-o[b.comp]; }
+    if (sortKey === 'alpha') return a.q.localeCompare(b.q);
+    return 0;
+  });
+
+  const tbody = document.getElementById('table-body');
+  const empty = document.getElementById('empty-state');
+  tbody.innerHTML = '';
+
+  if (data.length === 0) {
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    const maxVol = Math.max(...QUERIES.map(q=>q.vol));
+
+    data.forEach((q, i) => {
+      const src = SOURCES[q.src] || { color: '#888' };
+      const cat = CAT_COLORS[q.cat] || { bg:'#1a1a1a', text:'#888' };
+      const compClass = q.comp === 'low' ? 'comp-low' : q.comp === 'medium' ? 'comp-med' : 'comp-high';
+      const scoreClass = q.score >= 80 ? 'score-high' : q.score >= 60 ? 'score-mid' : 'score-low';
+      const volPct = Math.round((q.vol / maxVol) * 100);
+
+      let qText = q.q;
+      if (searchTerm) {
+        const re = new RegExp(`(${searchTerm})`, 'gi');
+        qText = qText.replace(re, '<mark>$1</mark>');
+      }
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-family:var(--mono);font-size:11px;color:var(--text3);width:36px">${String(i+1).padStart(2,'0')}</td>
+        <td><div class="q-text">${qText}</div></td>
+        <td><span class="src-tag"><span class="dot" style="background:${src.color}"></span>${q.src}</span></td>
+        <td><span class="cat-tag" style="background:${cat.bg};color:${cat.text}">${q.cat}</span></td>
+        <td>
+          <div class="vol-bar-wrap">
+            <div class="vol-bar"><div class="vol-fill" style="width:${volPct}%"></div></div>
+            <span class="vol-num">${q.vol.toLocaleString()}</span>
+          </div>
+        </td>
+        <td><span class="comp-badge ${compClass}">${q.comp}</span></td>
+        <td class="naive-cell ${q.naive ? 'naive-yes' : 'naive-none'}">${q.naive ? '✓ exists' : '✗ none'}</td>
+        <td>
+          <div class="score-cell">
+            <div class="score-ring ${scoreClass}">${q.score}</div>
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // update stats
+  const gap = data.filter(q=>!q.naive).length;
+  const opp = data.filter(q=>q.score>=80&&!q.naive).length;
+  const vol = data.reduce((a,q)=>a+q.vol,0);
+  document.getElementById('st-total').textContent = data.length;
+  document.getElementById('st-gap').textContent = gap;
+  document.getElementById('st-opp').textContent = opp;
+  document.getElementById('st-vol').textContent = vol.toLocaleString();
+  document.getElementById('footer-count').textContent = `showing ${data.length} of ${QUERIES.length} queries`;
+  document.getElementById('subtitle-text').textContent = `// ${data.length} queries · scraped from Reddit, HN, Stack Overflow`;
+}
+
+function filterCat(cat, btn) {
+  activeCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  // only affect cat buttons, not comp buttons
+  btn.classList.add('active');
+  render();
+}
+
+function filterComp(comp, btn) {
+  if (activeComp === comp) {
+    activeComp = null;
+    document.querySelectorAll('#cf-low,#cf-med,#cf-high').forEach(b=>b.classList.remove('active'));
+  } else {
+    activeComp = comp;
+    document.querySelectorAll('#cf-low,#cf-med,#cf-high').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  render();
+}
+
+function toggleSrc(src, btn) {
+  if (activeSrcs.has(src)) { activeSrcs.delete(src); btn.classList.remove('active'); }
+  else { activeSrcs.add(src); btn.classList.add('active'); }
+  render();
+}
+
+function doSearch(val) {
+  searchTerm = val;
+  render();
+}
+
+function doSort(key) {
+  sortKey = key;
+  document.querySelectorAll('th').forEach(t=>t.classList.remove('sorted'));
+  render();
+}
+
+function exportCSV() {
+  const data = getFiltered();
+  const rows = [['Query','Source','Category','Est. Monthly Volume','Competition','Naïve Content','Opportunity Score']];
+  data.forEach(q => rows.push([`"${q.q}"`, q.src, q.cat, q.vol, q.comp, q.naive?'Yes':'No', q.score]));
+  const csv = rows.map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'naive-query-gaps.csv';
+  a.click();
+}
+
+init();
+</script>
+</body>
+</html>

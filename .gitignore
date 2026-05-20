@@ -1,0 +1,19 @@
+# Next.js
+.next/
+out/
+node_modules/
+.env.local
+.env*.local
+
+# Backend
+backend/.venv/
+backend/__pycache__/
+backend/app/__pycache__/
+backend/query_discovery.sqlite3
+**/__pycache__/
+*.pyc
+*.pyo
+
+# Misc
+.DS_Store
+*.log
