@@ -194,7 +194,7 @@ export default function Home() {
         <Link href="/findings" style={{ textDecoration: "none", display: "block", marginBottom: 16 }}>
           <div style={{ background: "var(--bg2)", border: "1px solid var(--border2)", borderRadius: 8, padding: "28px 32px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32, alignItems: "center", cursor: "pointer" }}>
             <div>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--green)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>Signal Board · Deep Research</div>
+              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--green)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 14 }}>Signal Board · What the engine found</div>
               <div style={{ fontFamily: "var(--mono)", fontSize: "17px", fontWeight: 600, lineHeight: 1.45, marginBottom: 12 }}>Every builder building an autonomous agent hit the same 3 walls.</div>
               <p style={{ color: "var(--text3)", fontSize: "12px", lineHeight: 1.8, marginBottom: 18 }}>
                 Cards. Email. Identity. The engine found it across 22 threads — same pain, different codebases, all rebuilt from scratch.
@@ -272,7 +272,7 @@ export default function Home() {
         </div>
 
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 28 }}>
-          {["FastAPI", "Python", "SQLite", "Next.js 15", "TypeScript", "Claude Sonnet", "GPT-4o-mini", "Serper API", "Reddit API", "HN Algolia API"].map((t) => (
+          {["FastAPI", "Python", "SQLite", "Next.js 15", "TypeScript", "Claude Sonnet", "GPT-4o-mini", "Reddit API", "HN Algolia API", "Stack Overflow API"].map((t) => (
             <span key={t} style={{ fontFamily: "var(--mono)", fontSize: "11px", padding: "4px 10px", border: "1px solid var(--border2)", borderRadius: 3, color: "var(--text3)" }}>{t}</span>
           ))}
         </div>
