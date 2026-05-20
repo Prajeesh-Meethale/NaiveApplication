@@ -344,14 +344,14 @@ const DEFAULT_SOURCES = [
 ];
 
 const defaultConfig: ScrapeConfig = {
-  intent_mode: "balanced",
+  intent_mode: "wide",
   user_overrides: false,
   sources: DEFAULT_SOURCES,
-  source_floors: PRESETS.balanced.config.source_floors as Record<string, number>,
-  post_types: PRESETS.balanced.config.post_types as string[],
-  recency_days: 180,
+  source_floors: PRESETS.wide.config.source_floors as Record<string, number>,
+  post_types: PRESETS.wide.config.post_types as string[],
+  recency_days: 365,
   categories: ["formation", "banking", "identity", "kyc"],
-  max_results: 60,
+  max_results: 120,
   clear_existing: true,
 };
 
