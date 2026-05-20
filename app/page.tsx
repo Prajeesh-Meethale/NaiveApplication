@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import SignalBoard from "./signal-board";
 
 export const metadata: Metadata = {
   title: "Naïve Growth Engineer Application — 48h Sprint",
@@ -176,6 +177,9 @@ export default function Home() {
           <p style={{ color: "var(--text3)", fontSize: "11px", marginTop: 6, fontFamily: "var(--mono)" }}>— Reddit user, r/aicuriosity · publicly reported</p>
         </div>
       </section>
+
+      {/* Signal Board */}
+      <SignalBoard />
 
       {/* Engine */}
       <section style={{ maxWidth: 880, margin: "0 auto", padding: "72px 28px", borderBottom: "1px solid var(--border)" }}>
