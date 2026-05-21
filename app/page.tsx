@@ -351,7 +351,7 @@ export default function Home() {
           </div>
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, marginBottom: 20 }}>
             <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 14 }}>Past Work</div>
-            <a href="https://www.meethale.com/work/signal-led-outbound" target="_blank" rel="noopener" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, textDecoration: "none", flexWrap: "wrap" }}>
+            <Link href="/work/signal-led-outbound" style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 24, textDecoration: "none", flexWrap: "wrap" }}>
               <div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "12px", fontWeight: 600, color: "var(--text)", marginBottom: 5 }}>Signal-Led Outbound Engine</div>
                 <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text3)", lineHeight: 1.7 }}>Python scrapers + Claude 3.5 + Clay — replaced firmographic targeting with job-board intent signals</div>
@@ -368,7 +368,7 @@ export default function Home() {
                 ))}
                 <span style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text3)" }}>Case study ↗</span>
               </div>
-            </a>
+            </Link>
           </div>
           <div style={{ borderTop: "1px solid var(--border)", paddingTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
