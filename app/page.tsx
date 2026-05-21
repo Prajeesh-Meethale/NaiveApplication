@@ -168,8 +168,7 @@ export default function Home() {
           Naïve Query Discovery Engine
         </h2>
         <p style={{ color: "var(--text2)", maxWidth: 620, marginBottom: 44, lineHeight: 1.8 }}>
-          A full-stack SEO/GEO intelligence system that finds what Naïve should publish, where it should comment, and how LLMs currently answer queries in the problem space.
-          Built to run weekly — not as a one-off.
+          Scrapes Reddit, HN, and Stack Overflow weekly. Scores every thread by how urgently Naïve solves the problem. Spits out ranked content gaps.
         </p>
 
         {/* What it found card */}
@@ -256,8 +255,7 @@ export default function Home() {
           30 briefs. 3 published. All engine output.
         </h2>
         <p style={{ color: "var(--text2)", marginBottom: 40, lineHeight: 1.8, maxWidth: 620 }}>
-          The engine scored 30 content opportunities across 5 primitives. Each one maps to a real search query with a gap.
-          Three are live below. The full pipeline is in Google Drive — briefs reviewed and ready to write.
+          The engine found 30 queries worth writing for. I reviewed each one and picked three to write first. The rest are in Google Drive — brief, angle, and target query already done.
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
           {[
