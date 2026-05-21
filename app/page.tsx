@@ -336,13 +336,16 @@ export default function Home() {
               <div style={{ fontFamily: "var(--mono)", fontSize: "15px", fontWeight: 600, color: "var(--text)", marginBottom: 4 }}>Prajeesh Meethale</div>
               <div style={{ fontFamily: "var(--mono)", fontSize: "11px", color: "var(--text3)", marginBottom: 18 }}>Growth Engineer</div>
               <p style={{ color: "var(--text2)", fontSize: "13px", lineHeight: 1.85, maxWidth: 520, margin: 0, marginBottom: 14 }}>
-                IIT Madras. I build the system that produces the content, not the content itself. Scrapers, scorers, pipelines. Brief, code, and post: same person, same week.
+                I&apos;m a growth engineer with a background in systems, automation, and developer-focused growth. I studied at Indian Institute of Technology Madras, and I tend to work on the infrastructure behind modern growth operations — scrapers, scoring systems, research pipelines, and publishing workflows.
               </p>
               <p style={{ color: "var(--text2)", fontSize: "13px", lineHeight: 1.85, maxWidth: 520, margin: 0, marginBottom: 14 }}>
-                National Mathematics Olympiad runner-up. Turns out useful when the growth problem is really a scoring problem. Next.js, TypeScript, Python. LLMs go in the stack where they belong.
+                I was also a National Mathematics Olympiad runner-up, which probably explains why I enjoy growth problems that are really ranking, data, or optimization problems underneath.
+              </p>
+              <p style={{ color: "var(--text2)", fontSize: "13px", lineHeight: 1.85, maxWidth: 520, margin: 0, marginBottom: 14 }}>
+                My stack is mostly Next.js, TypeScript, Python, and LLM tooling. I use AI where it actually helps, not as decoration.
               </p>
               <p style={{ color: "var(--text2)", fontSize: "13px", lineHeight: 1.85, maxWidth: 520, margin: 0 }}>
-                Currently organizing The Modern AI Stack — 100+ AI practitioners, Hyderabad, May 2026. AI Workflows, Agent Security, Vibe Coding. Developer community work is not new.
+                Right now, I&apos;m organizing <em>The Modern AI Stack</em> in Hyderabad — a gathering of 100+ AI practitioners around AI workflows, agent security, and vibe coding. I&apos;ve been involved in developer community and ecosystem work for a while, and I enjoy building things that make technical ideas easier to use and scale.
               </p>
             </div>
           </div>
