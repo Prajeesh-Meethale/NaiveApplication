@@ -94,22 +94,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Stats */}
-      <div style={{ borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)", background: "var(--bg2)" }}>
-        <div style={{ maxWidth: 880, margin: "0 auto", padding: "36px 28px", display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 24 }}>
-          {[
-            { val: "47+", label: "Threads Scraped" },
-            { val: "6", label: "Content Gaps" },
-            { val: "30", label: "Pages Generated" },
-            { val: "1", label: "Platform Bug" },
-          ].map((s) => (
-            <div key={s.label}>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "30px", fontWeight: 600 }}>{s.val}</div>
-              <div style={{ fontFamily: "var(--mono)", fontSize: "10px", color: "var(--text3)", textTransform: "uppercase", letterSpacing: "0.09em", marginTop: 6 }}>{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </div>
 
       {/* Bug Report */}
       <section id="bug" style={{ maxWidth: 880, margin: "0 auto", padding: "72px 28px", borderBottom: "1px solid var(--border)" }}>
